@@ -626,6 +626,7 @@
     .mobile-header {
       text-align: center;
       margin-bottom: 30px;
+      position: relative;
     }
 
     .mobile-header .osis-logo {
@@ -1178,10 +1179,20 @@
     function validateNIK(nik) {
       return /^\d{16}$/.test(nik);
     }
+    
+    // Validasi nama hanya huruf, spasi, titik, dan koma
+    function validateName(name) {
+      return /^[a-zA-Z\s.,]+$/.test(name);
+    }
 
     function toUpperCaseInput(e) {
-      // Hanya izinkan huruf, spasi, titik, dan koma
+      // Hanya izinkan huruf, spasi, titik, dan koma (tidak menerima angka)
       e.target.value = e.target.value.replace(/[^a-zA-Z\s.,]/g, '').toUpperCase();
+    }
+    
+    // Fungsi untuk membuat input kelas otomatis kapital tapi tetap bisa angka
+    function toUpperCaseKelas(e) {
+      e.target.value = e.target.value.toUpperCase();
     }
 
     function showCandidateModal(candidateKey) {
@@ -1397,6 +1408,7 @@
           <div class="form-group">
             <label class="form-label">Nama Lengkap</label>
             <input class="form-control" id="nama" oninput="toUpperCaseInput(event)" placeholder="Contoh: AHMAD FADILAH">
+            <div class="error-message" id="nama-error">Nama hanya boleh berisi huruf, spasi, titik, dan koma</div>
           </div>
           
           <div class="form-group">
@@ -1408,11 +1420,21 @@
           <div class="form-group">
             <label class="form-label">Kelas</label>
             <div class="autocomplete-container">
-              <input class="form-control" id="kelas" oninput="toUpperCaseInput(event)" placeholder="Ketik nama kelas (contoh: X AKL 1)">
+              <input class="form-control" id="kelas" oninput="toUpperCaseKelas(event)" placeholder="Ketik nama kelas (contoh: X AKL 1)">
               <!-- Autocomplete list akan ditambahkan secara dinamis -->
             </div>
           </div>
         `;
+        
+        document.getElementById("nama").addEventListener("blur", function() {
+          if (!validateName(this.value)) {
+            this.classList.add("input-error");
+            document.getElementById("nama-error").style.display = "block";
+          } else {
+            this.classList.remove("input-error");
+            document.getElementById("nama-error").style.display = "none";
+          }
+        });
         
         document.getElementById("nis_nip").addEventListener("blur", function() {
           if (!validateNIS(this.value)) {
@@ -1445,6 +1467,7 @@
           <div class="form-group">
             <label class="form-label">Nama Lengkap</label>
             <input class="form-control" id="nama" oninput="toUpperCaseInput(event)" placeholder="Contoh: DRS. BUDI SANTOSO, M.PD.">
+            <div class="error-message" id="nama-error">Nama hanya boleh berisi huruf, spasi, titik, dan koma</div>
           </div>
           
           <div class="form-group">
@@ -1453,6 +1476,16 @@
             <div class="error-message" id="nis_nip-error">${idType === 'NIP' ? 'NIP harus 18 digit angka' : 'NIK harus 16 digit angka'}</div>
           </div>
         `;
+        
+        document.getElementById("nama").addEventListener("blur", function() {
+          if (!validateName(this.value)) {
+            this.classList.add("input-error");
+            document.getElementById("nama-error").style.display = "block";
+          } else {
+            this.classList.remove("input-error");
+            document.getElementById("nama-error").style.display = "none";
+          }
+        });
         
         document.getElementById("nis_nip").addEventListener("blur", function() {
           let isValid = false;
@@ -1488,6 +1521,9 @@
         if (!validateNIS(user.nis_nip)) 
           return showNotification("NIS harus 5 digit angka", "warning");
           
+        if (!validateName(user.nama))
+          return showNotification("Nama hanya boleh berisi huruf, spasi, titik, dan koma", "warning");
+          
         // Validasi apakah kelas yang dimasukkan ada di daftar
         if (!daftarKelas.includes(user.kelas)) {
           return showNotification("Kelas tidak valid. Silakan pilih dari daftar yang tersedia", "warning");
@@ -1497,6 +1533,9 @@
       if (role === "GURU") {
         if (!user.nis_nip || !user.nama) 
           return showNotification("Lengkapi semua data", "warning");
+        
+        if (!validateName(user.nama))
+          return showNotification("Nama hanya boleh berisi huruf, spasi, titik, dan koma", "warning");
         
         let isValid = false;
         if (idType === "NIP") {
@@ -1536,12 +1575,12 @@
       });
       
       connectors.forEach((connector, index) => {
-  if (index + 1 < step) {
-    connector.classList.add('completed');
-  } else {
-    connector.classList.remove('completed');
-  }
-});
+        if (index + 1 < step) {
+          connector.classList.add('completed');
+        } else {
+          connector.classList.remove('completed');
+        }
+      });
     }
 
     function renderVotingPage() {
